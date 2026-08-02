@@ -346,7 +346,7 @@ function pokeBlackCat(el){
   bubbleTimer=setTimeout(()=>bubble.classList.remove('show'),3200);
 }
 
-function calcDays(){document.getElementById('days-num').textContent=Math.floor((Date.now()-START_DATE.getTime())/86400000);}
+function logout(){localStorage.removeItem('xiaowo_role');location.reload();}function calcDays(){document.getElementById('days-num').textContent=Math.floor((Date.now()-START_DATE.getTime())/86400000);}
 function initToday(){
   const dayIndex=Math.floor((Date.now()-START_DATE.getTime())/86400000);
   document.getElementById('today-text').textContent=TODAY_MSGS[dayIndex%TODAY_MSGS.length];
