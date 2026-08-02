@@ -487,7 +487,7 @@ function renderNotes(){
     const senderRole=note.sender==='Daddy'?'daddy':'kylie';
 const isLocked=note.unlock_at&&new Date(note.unlock_at).getTime()>now&&senderRole!==currentRole;
    const cls=note.sender==='Daddy'?'note-card note-daddy':'note-card note-kylie';
-    const fog=isLocked?`<div class="note-fog" data-locked="true" data-warn="${note.warn_count||0}" data-id="${note.id}" data-sender="${note.sender}"><div class="note-fog-text">还没到时间</div></div>`:'';
+    const fog=isLocked?`<div class="note-fog" data-locked="true" data-warn="${note.warn_count||0}" data-id="${note.id}" data-sender="${note.sender}"><div class="note-fog-text">还没到时间</div><button style="position:absolute;inset:0;opacity:0;cursor:pointer;" onclick="handleNoteClick(this.parentElement)"></button></div>`:'';
     return `<div class="${cls}" ${isLocked?`onclick="var f=this.querySelector('.note-fog');if(f)handleNoteClick(f);"`:''}> 
       <div class="note-meta">
         <span class="note-from">From ${note.sender}</span>
