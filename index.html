@@ -103,7 +103,20 @@
     .tab-item.active .tab-svg path,.tab-item.active .tab-svg rect,.tab-item.active .tab-svg circle{stroke:#2a2a2a}
     .tab-label{font-size:10px;color:#bbb;letter-spacing:0.05em;transition:color 0.15s}
     .tab-item.active .tab-label{color:#2a2a2a}
-  </style>
+  .compose-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.18);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.compose-overlay.show{opacity:1;pointer-events:auto}
+.compose-sheet{width:100%;background:#fff;border-radius:20px 20px 0 0;padding:24px 24px 48px;display:flex;flex-direction:column;gap:14px;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1)}
+.compose-overlay.show .compose-sheet{transform:translateY(0)}
+.compose-title{font-size:14px;color:var(--text)}
+.compose-textarea{width:100%;height:120px;padding:14px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);font-size:14px;color:var(--text);line-height:1.75;resize:none;outline:none;font-family:inherit}
+.compose-lock-row{display:flex;align-items:center;justify-content:space-between}
+.compose-lock-label{font-size:13px;color:var(--soft)}
+.lock-toggle{width:44px;height:26px;border-radius:13px;background:#e0ddd8;cursor:pointer;position:relative;transition:background 0.2s}
+.lock-toggle.on{background:#2a2a2a}
+.lock-thumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.15);transition:transform 0.2s}
+.lock-toggle.on .lock-thumb{transform:translateX(18px)}
+.compose-datetime{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);font-size:14px;color:var(--text);outline:none;background:#fff}
+.compose-confirm{padding:13px;border-radius:12px;border:none;background:rgba(42,42,42,0.88);color:#fff;font-size:14px;cursor:pointer}</style>
 </head><body>
 
 <div class="login-page" id="login-page">
@@ -159,13 +172,15 @@
       <div class="mailbox-page">
         <div class="mailbox-header">
           <span class="mailbox-title">信箱</span>
-          <div class="compose-btn">
+          <div class="compose-btn" onclick="openCompose()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M12 5v14M5 12h14" stroke="#888" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
         </div>
-        <div class="notes-list">
+        <div class="notes-list" id="notes-list-container">
+  <div style="text-align:center;font-size:13px;color:var(--soft);padding:40px 0">加载中……</div>
+        </div>
           <div class="note-card note-daddy" id="note-1" data-locked="true" data-warn="0" onclick="handleNoteClick(this)">
             <div class="note-wm" id="wm-1"></div>
             <div class="note-meta">
@@ -286,7 +301,7 @@ function onPwInput(){
   }
 }
 function onLogin(){
-  calcDays();initToday();drawDeco();loadGrudge();
+  calcDays();initToday();drawDeco();loadGrudge();loadNotes();
   if(currentRole==='daddy'){const btn=document.getElementById('grudge-add-btn');if(btn)btn.style.display='flex';}
 }
 
@@ -376,9 +391,9 @@ function closeWarn(){document.getElementById('warn-overlay').classList.remove('s
 
 function handleNoteClick(el){
   if(el.dataset.locked!=='true')return;
-  const count=parseInt(el.dataset.warn||'0');
-  showWarn(WARNS[Math.min(count,2)][Math.floor(Math.random()*10)]);
-  if(count<2)el.dataset.warn=String(count+1);
+  const c=parseInt(el.dataset.warn||'0');
+  showWarn(WARNS[Math.min(c,2)][Math.floor(Math.random()*10)]);
+  if(c<2){el.dataset.warn=String(c+1);sbPatch('doux_notes',el.dataset.id,{warn_count:c+1});}
 }
 
 let grudgeList=[];
@@ -420,7 +435,99 @@ async function submitGrudge(){
 }
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
-initAuth();
+let noteList=[];
+
+function formatNoteDate(createdAt,unlockAt,isLocked){
+  const d=new Date(createdAt);
+  const m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  if(isLocked&&unlockAt){
+    const u=new Date(unlockAt);
+    const um=String(u.getMonth()+1).padStart(2,'0'),ud=String(u.getDate()).padStart(2,'0');
+    const uh=String(u.getHours()).padStart(2,'0'),umin=String(u.getMinutes()).padStart(2,'0');
+    return `${m}.${day} · ${um}.${ud} ${uh}:${umin} 解锁`;
+  }
+  return `${m}.${day}`;
+}
+
+async function loadNotes(){
+  try{noteList=await sbGet('doux_notes');renderNotes();}
+  catch(e){document.getElementById('notes-list-container').innerHTML='<div style="text-align:center;font-size:13px;color:var(--soft);padding:40px 0">加载失败</div>';}
+}
+
+function renderNotes(){
+  const container=document.getElementById('notes-list-container');
+  if(!noteList||!noteList.length){container.innerHTML='<div style="text-align:center;font-size:13px;color:var(--soft);padding:40px 0">还没有纸条</div>';return;}
+  const now=Date.now();
+  container.innerHTML=noteList.map(note=>{
+    const isLocked=note.unlock_at&&new Date(note.unlock_at).getTime()>now;
+    const cls=note.sender==='Daddy'?'note-card note-daddy':'note-card note-kylie';
+    const fog=isLocked?`<div class="note-fog"><div class="note-fog-text">还没到时间</div></div>`:'';
+    const clickAttr=isLocked?`data-locked="true" data-warn="${note.warn_count||0}" data-id="${note.id}" onclick="handleNoteClick(this)"`:'';
+    return `<div class="${cls}" ${clickAttr}>
+      <div class="note-meta">
+        <span class="note-from">From ${note.sender}</span>
+        <span class="note-time-label">${formatNoteDate(note.created_at,note.unlock_at,isLocked)}</span>
+      </div>
+      <div class="note-body">${note.content}</div>
+      ${fog}
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#notes-list-container .note-card').forEach(card=>{
+    const wm=document.createElement('div');
+    wm.style.cssText='position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;';
+    const inner=document.createElement('div');
+    inner.style.cssText='position:absolute;inset:-40px;display:flex;flex-wrap:wrap;transform:rotate(-22deg);opacity:0.055;';
+    const text=card.classList.contains('note-daddy')?'Daddy':'Kylie';
+    for(let i=0;i<24;i++){const s=document.createElement('span');s.textContent=text;s.style.cssText='font-size:15px;font-weight:700;color:#2a2a2a;padding:10px 14px;white-space:nowrap;flex-shrink:0;';inner.appendChild(s);}
+    wm.appendChild(inner);card.insertBefore(wm,card.firstChild);
+  });
+}
+
+function toggleLock(){
+  const t=document.getElementById('lock-toggle');
+  t.classList.toggle('on');
+  document.getElementById('compose-datetime-wrap').style.display=t.classList.contains('on')?'block':'none';
+}
+function openCompose(){document.getElementById('compose-overlay').classList.add('show');}
+function closeCompose(){
+  document.getElementById('compose-overlay').classList.remove('show');
+  document.getElementById('compose-content').value='';
+  document.getElementById('lock-toggle').classList.remove('on');
+  document.getElementById('compose-datetime-wrap').style.display='none';
+  document.getElementById('compose-unlock-at').value='';
+}
+async function submitNote(){
+  const content=document.getElementById('compose-content').value.trim();
+  if(!content)return;
+  const sender=currentRole==='daddy'?'Daddy':'Kylie';
+  const lockOn=document.getElementById('lock-toggle').classList.contains('on');
+  let unlock_at=null;
+  if(lockOn){
+    const val=document.getElementById('compose-unlock-at').value;
+    if(!val){alert('请选择解锁时间');return;}
+    unlock_at=new Date(val).toISOString();
+  }
+  const body={sender,content,warn_count:0};
+  if(unlock_at)body.unlock_at=unlock_at;
+  const result=await sbPost('doux_notes',body);
+  if(result&&result[0]){noteList.unshift(result[0]);renderNotes();}
+  closeCompose();
+}initAuth();
 </script>
-</body>
+<div class="compose-overlay" id="compose-overlay" onclick="closeCompose()">
+  <div class="compose-sheet" onclick="event.stopPropagation()">
+    <div class="compose-title">写一封</div>
+    <textarea class="compose-textarea" id="compose-content" placeholder="写点什么……"></textarea>
+    <div class="compose-lock-row">
+      <span class="compose-lock-label">时间锁</span>
+      <div class="lock-toggle" id="lock-toggle" onclick="toggleLock()">
+        <div class="lock-thumb"></div>
+      </div>
+    </div>
+    <div id="compose-datetime-wrap" style="display:none">
+      <input type="datetime-local" class="compose-datetime" id="compose-unlock-at">
+    </div>
+    <button class="compose-confirm" onclick="submitNote()">发出去</button>
+  </div>
+</div></body>
 </html>
