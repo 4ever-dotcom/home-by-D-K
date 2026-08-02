@@ -50,7 +50,7 @@
     .note-time-label{font-size:10px;color:var(--soft);opacity:0.7}
     .note-body{font-size:14px;color:var(--text);line-height:1.85}
     .note-fog{position:absolute;inset:0;background:rgba(255,255,255,0.52);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;animation:breathe 3.5s ease-in-out infinite}
-    .note-fog-text{font-size:11px;color:var(--soft);letter-spacing:0.08em}.note-fog *{pointer-events:none}
+    .note-fog-text{font-size:11px;color:var(--soft);letter-spacing:0.08em}.note-fog-text{pointer-events:none}
     @keyframes breathe{0%,100%{background:rgba(255,255,255,0.52);backdrop-filter:blur(7px)}50%{background:rgba(255,255,255,0.62);backdrop-filter:blur(9px)}}
     .warn-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.18);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity 0.25s}
     .warn-overlay.show{opacity:1;pointer-events:auto}
