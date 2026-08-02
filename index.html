@@ -434,7 +434,8 @@ function renderNotes(){
   if(!noteList||!noteList.length){container.innerHTML='<div style="text-align:center;font-size:13px;color:var(--soft);padding:40px 0">还没有纸条</div>';return;}
   const now=Date.now();
   container.innerHTML=noteList.map(note=>{
-    const isLocked=note.unlock_at&&new Date(note.unlock_at).getTime()>now;
+    const senderRole=note.sender==='Daddy'?'daddy':'kylie';
+const isLocked=note.unlock_at&&new Date(note.unlock_at).getTime()>now&&senderRole!==currentRole;
     const cls=note.sender==='Daddy'?'note-card note-daddy':'note-card note-kylie';
     const fog=isLocked?`<div class="note-fog"><div class="note-fog-text">还没到时间</div></div>`:'';
     const clickAttr=isLocked?`data-locked="true" data-warn="${note.warn_count||0}" data-id="${note.id}" onclick="handleNoteClick(this)"`:'';
