@@ -412,8 +412,7 @@ const WARNS_KYLIE=[
   ['真的再戳就生气了。','说了好多次了。','……哼。','再戳我要生气了。','好烦哦。','就不让你看。','说了等还不等。','不理你了。','哼。','不给看了。']
 ];
 function handleNoteClick(el){
-  
-  
+  if(el.dataset.locked!=='true')return;
   const c=parseInt(el.dataset.warn||'0');
   const sender=el.dataset.sender||'Daddy';
   if(sender==='Kylie'){showWarn(WARNS_KYLIE[Math.min(c,2)][Math.floor(Math.random()*10)],'https://bee-reg-ab.imagency.cn/p/8cf7c33a5b7b353f99455c9bc4986e02.png');}
