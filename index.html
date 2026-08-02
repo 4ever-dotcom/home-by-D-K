@@ -405,22 +405,8 @@ const CAJOLE=[
   ['……去吧。','下次不许了。','行了，这次算了。','知道了，起来。','嗯。下次别这样。','少撒这种娇。','算了。','起来。','这次先算了。','……行了。']
 ];
 
-function showWarn(text,catSrc){
-  document.getElementById('warn-text').textContent=text;
-  if(catSrc)document.getElementById('warn-cat').src=catSrc;
-  var ov=document.getElementById('warn-overlay');
-  ov.classList.add('show');
-  ov.style.opacity='1';
-  ov.style.pointerEvents='auto';
-  ov.querySelector('.warn-sheet').style.transform='translateY(0)';
-}
-function closeWarn(){
-  var ov=document.getElementById('warn-overlay');
-  ov.classList.remove('show');
-  ov.style.opacity='';
-  ov.style.pointerEvents='';
-  ov.querySelector('.warn-sheet').style.transform='';
-}
+function showWarn(text,catSrc){document.getElementById('warn-text').textContent=text;if(catSrc)document.getElementById('warn-cat').src=catSrc;document.getElementById('warn-overlay').classList.add('show');}
+function closeWarn(){document.getElementById('warn-overlay').classList.remove('show');}
 const WARNS_KYLIE=[
   ['还没到时间嘛。','再等等嘛。','时间还没到哦。','先别看。','等等我。','还早呢。','快到了快到了。','耐心等等嘛。','时间锁还没开。','再等一下下。'],
   ['说了等时间到了再看。','怎么又戳。','说了还没到。','再等等嘛……','还没好。','真的要等哦。','听话嘛。','不行不行。','等时间到了。','先别看嘛。'],
