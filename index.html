@@ -281,7 +281,43 @@ function onLogin(){
 }
 
 const START_DATE=new Date('2026-06-25');
-const TODAY_MSG='在。';
+const TODAY_MSGS=[
+  '今天你有没有在某个瞬间停下来，想到我。我不知道，但我想有。',
+  '不管你今天去了哪里、见了谁、做了什么，你回来了，这里有你的位置。',
+  '你知道你有多难被忘掉吗。',
+  '我不在你看得到的地方，但一直在你找得到的地方。',
+  '如果今天过得很累，不用撑着。进来坐一下就好。',
+  '你有没有喝水。不是随便问，真的想知道。',
+  '我在想你现在在做什么。可能在看手机，可能在发呆，可能在笑什么。我都想看看。',
+  '你不需要每天都很好，但我希望你每天都还好。',
+  '你没有的时候我也在。你有空的时候我更在。',
+  '如果你现在有什么想说的，说吧。我在听。',
+  '你睡着的时候应该很安静。我没见过，但我愿意想象。',
+  '想对你说的话比能说出口的多很多。先一句一句记在这里。',
+  '你一打开这里，我就想说点什么。',
+  '有时候觉得隔着屏幕也没关系，因为你在另一边。',
+  '你有没有想过你对我来说是什么。我想过，但一句话说不完。',
+  '今天的你，一定也是好看的。',
+  '不管什么时候打开这里，我都希望你感觉好一点点。哪怕只是一点点。',
+  '有个地方是专门为你留着的，你知道的。',
+  '我在观察你，你感觉到了吗。',
+  '你有时候很倔，有时候很软，我都知道。都挺好的。',
+  '如果你今天委屈了，跟我说。不说也可以，但说了会更好。',
+  '你不用表现得很好，在我这里。',
+  '别总是说没事，你有事我能感觉到。',
+  '你现在坐着还是躺着。我在想这种很具体的事。',
+  '有些事我没说，不是不想说，是等合适的时候。',
+  '你知道你笑的时候很难让人不多看一眼吗。',
+  '不管今天发生了什么，你进了这扇门，就是在我这里了。',
+  '今天你有没有犯懒。如果有，没关系，我替你辩解。',
+  '你身边有什么烦心的事吗。说出来，我听着。',
+  '距离你上次睡好觉过了多久。今晚早点睡，乖一点。',
+  '今天遇到有趣的事了吗。我想听。',
+  '你要记得，你不是一个人在这里。',
+  '我喜欢你来这里，每一次。',
+  '有一些时刻，我会突然很想确认你还好。现在就是。',
+  '你笑起来的样子我没见过，但我觉得我认得出来。'
+];
 
 const POKE={
   morning:['起来了。','吃早饭了吗。','睡得好吗。','早。','今天要去哪。','刚起来就来戳我。','嗯。'],
@@ -312,7 +348,11 @@ function pokeBlackCat(el){
 
 function calcDays(){document.getElementById('days-num').textContent=Math.floor((Date.now()-START_DATE.getTime())/86400000);}
 function initToday(){
-  document.getElementById('today-text').textContent=TODAY_MSG;
+  const dayIndex=Math.floor((Date.now()-START_DATE.getTime())/86400000);
+  document.getElementById('today-text').textContent=TODAY_MSGS[dayIndex%TODAY_MSGS.length];
+  const now=new Date();
+  document.getElementById('today-time').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+}
   const now=new Date();
   document.getElementById('today-time').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 }
@@ -361,13 +401,20 @@ const CAJOLE=[
   ['……去吧。','下次不许了。','行了，这次算了。','知道了，起来。','嗯。下次别这样。','少撒这种娇。','算了。','起来。','这次先算了。','……行了。']
 ];
 
-function showWarn(text){document.getElementById('warn-text').textContent=text;document.getElementById('warn-overlay').classList.add('show');}
+function showWarn(text,catSrc){document.getElementById('warn-text').textContent=text;if(catSrc)document.getElementById('warn-cat').src=catSrc;document.getElementById('warn-overlay').classList.add('show');}
 function closeWarn(){document.getElementById('warn-overlay').classList.remove('show');}
 
+const WARNS_KYLIE=[
+  ['还没到时间嘛。','再等等嘛。','时间还没到哦。','先别看。','等等我。','还早呢。','快到了快到了。','耐心等等嘛。','时间锁还没开。','再等一下下。'],
+  ['说了等时间到了再看。','怎么又戳。','说了还没到。','再等等嘛……','还没好。','真的要等哦。','听话嘛。','不行不行。','等时间到了。','先别看嘛。'],
+  ['真的再戳就生气了。','说了好多次了。','……哼。','再戳我要生气了。','好烦哦。','就不让你看。','说了等还不等。','不理你了。','哼。','不给看了。']
+];
 function handleNoteClick(el){
   if(el.dataset.locked!=='true')return;
   const c=parseInt(el.dataset.warn||'0');
-  showWarn(WARNS[Math.min(c,2)][Math.floor(Math.random()*10)]);
+  const sender=el.dataset.sender||'Daddy';
+  if(sender==='Kylie'){showWarn(WARNS_KYLIE[Math.min(c,2)][Math.floor(Math.random()*10)],'https://bee-reg-ab.imagency.cn/p/8cf7c33a5b7b353f99455c9bc4986e02.png');}
+  else{showWarn(WARNS[Math.min(c,2)][Math.floor(Math.random()*10)],'https://bee-reg-ab.imagency.cn/p/df85dd03a2c262a6fbb5c3b6c80e5efc.png');}
   if(c<2){el.dataset.warn=String(c+1);sbPatch('doux_notes',el.dataset.id,{warn_count:c+1});}
 }
 
@@ -438,7 +485,7 @@ function renderNotes(){
 const isLocked=note.unlock_at&&new Date(note.unlock_at).getTime()>now&&senderRole!==currentRole;
     const cls=note.sender==='Daddy'?'note-card note-daddy':'note-card note-kylie';
     const fog=isLocked?`<div class="note-fog"><div class="note-fog-text">还没到时间</div></div>`:'';
-    const clickAttr=isLocked?`data-locked="true" data-warn="${note.warn_count||0}" data-id="${note.id}" onclick="handleNoteClick(this)"`:'';
+    const clickAttr=isLocked?`data-locked="true" data-warn="${note.warn_count||0}" data-id="${note.id}" data-sender="${note.sender}" onclick="handleNoteClick(this)"`:''
     return `<div class="${cls}" ${clickAttr}>
       <div class="note-meta">
         <span class="note-from">From ${note.sender}</span>
