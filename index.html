@@ -413,7 +413,7 @@ const WARNS_KYLIE=[
 ];
 function handleNoteClick(el){
   alert(1);alert('locked:' + el.dataset.locked);
-  if(el.dataset.locked!=='true')return;
+  
   const c=parseInt(el.dataset.warn||'0');
   const sender=el.dataset.sender||'Daddy';
   if(sender==='Kylie'){showWarn(WARNS_KYLIE[Math.min(c,2)][Math.floor(Math.random()*10)],'https://bee-reg-ab.imagency.cn/p/8cf7c33a5b7b353f99455c9bc4986e02.png');}
