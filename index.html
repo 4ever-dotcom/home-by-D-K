@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f0eeeb">
+  <link rel="manifest" href="manifest.json">
+  <title>小窝</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+    :root {
+      --bg: #f0eeeb;
+      --bg-center: #e0dbd5;
+      --text: #2a2a2a;
+      --soft: #999;
+      --tab-h: 64px;
+    }
+
+    html, body { height:100%; overflow:hidden; font-family:-apple-system,'PingFang SC',sans-serif; }
+
+    /* 背景 */
+    .bg {
+      position:fixed; inset:0; z-index:0;
+      background: radial-gradient(ellipse 60% 50% at 50% 55%, var(--bg-center) 0%, var(--bg) 100%);
+    }
+    .bg::after {
+      content:''; position:absolute; inset:0; opacity:0.035; pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:200px 200px;
+    }
+
+    /* 星星 + 爪印层 */
+    .deco { position:fixed; inset:0; pointer-events:none; z-index:1; }
+
+    /* 应用层 */
+    .app { position:relative; z-index:10; height:100%; display:flex; flex-direction:column; }
+    .tab-content { flex:1; overflow-y:auto; padding-bottom:var(--tab-h); -webkit-overflow-scrolling:touch; }
+    .page { display:none; }
+    .page.active { display:block; }
+
+    /* 主页 */
+    .home {
+      padding: 44px 24px 32px;
+      display:flex; flex-direction:column; align-items:center; gap:28px;
+    }
+
+    .byline { font-size:11px; color:var(--soft); letter-spacing:0.12em; opacity:0.55; }
+
+    .days-num { font-size:56px; font-weight:300; color:var(--text); letter-spacing:-3px; line-height:1; text-align:center; }
+    .days-label { font-size:11px; color:var(--soft); margin-top:5px; letter-spacing:0.2em; text-align:center; }
+
+    /* 猫 */
+    .cats { display:flex; align-items:flex-end; justify-content:center; gap:20px; width:100%; }
+    .cat-wrap { display:flex; flex-direction:column; align-items:center; gap:7px; cursor:pointer; user-select:none; -webkit-user-select:none; }
+    .cat-img {
+      width:112px; height:112px; object-fit:contain;
+      animation: float 3.6s ease-in-out infinite;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.09));
+      transition: transform 0.1s;
+    }
+    .cat-wrap:nth-child(2) .cat-img { animation-duration: 3.1s; animation-delay: -1.2s; }
+    .cat-name { font-size:11px; color:var(--soft); letter-spacing:0.06em; }
+
+    .cat-wrap.shake .cat-img { animation: shake 0.45s ease-out; }
+
+    @keyframes float {
+      0%,100% { transform:translateY(0px); }
+      50% { transform:translateY(-9px); }
+    }
+    @keyframes shake {
+      0%   { transform:translateX(0) rotate(0deg); }
+      18%  { transform:translateX(-5px) rotate(-4deg); }
+      36%  { transform:translateX(5px) rotate(4deg); }
+      54%  { transform:translateX(-3px) rotate(-2deg); }
+      72%  { transform:translateX(3px) rotate(2deg); }
+      100% { transform:translateX(0) rotate(0deg); }
+    }
+
+    /* 气泡 */
+    .bubble {
+      position:fixed; z-index:200; pointer-events:none;
+      background:rgba(255,255,255,0.92); border:1px solid rgba(0,0,0,0.07);
+      border-radius:16px 16px 16px 4px; padding:10px 16px;
+      font-size:14px; color:var(--text); line-height:1.6; max-width:200px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.07); backdrop-filter:blur(10px);
+      opacity:0; transform:scale(0.88) translateY(6px);
+      transition:opacity 0.2s, transform 0.2s;
+    }
+    .bubble.show { opacity:1; transform:scale(1) translateY(0); }
+
+    /* 今天的我 */
+    .today-card {
+      width:100%;
+      background:rgba(255,255,255,0.48); border-radius:18px;
+      padding:18px 20px; backdrop-filter:blur(14px);
+      border:1px solid rgba(255,255,255,0.75);
+      box-shadow:0 2px 20px rgba(0,0,0,0.04);
+    }
+    .today-label { font-size:10px; color:var(--soft); letter-spacing:0.18em; margin-bottom:9px; }
+    .today-text { font-size:14px; color:var(--text); line-height:1.75; }
+    .today-time { font-size:10px; color:var(--soft); margin-top:9px; opacity:0.7; }
+
+    .poke-hint { font-size:11px; color:var(--soft); opacity:0.45; letter-spacing:0.04em; }
+
+    /* 占位页 */
+    .placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; gap:10px; }
+    .placeholder-text { font-size:13px; color:var(--soft); text-align:center; line-height:2; }
+
+    /* Tab 栏 */
+    .tab-bar {
+      position:fixed; bottom:0; left:0; right:0; height:var(--tab-h);
+      display:flex; z-index:50;
+      background:rgba(240,238,235,0.86); backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+      border-top:1px solid rgba(0,0,0,0.05);
+      padding-bottom:env(safe-area-inset-bottom);
+    }
+    .tab-item {
+      flex:1; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:3px; cursor:pointer; padding:8px 0;
+      transition:opacity 0.15s;
+    }
+    .tab-item:active { opacity:0.55; }
+    .tab-svg { width:22px; height:22px; }
+    .tab-svg path, .tab-svg rect, .tab-svg circle { stroke:#bbb; transition:stroke 0.15s; }
+    .tab-item.active .tab-svg path,
+    .tab-item.active .tab-svg rect,
+    .tab-item.active .tab-svg circle { stroke:#2a2a2a; }
+    .tab-label { font-size:10px; color:#bbb; letter-spacing:0.05em; transition:color 0.15s; }
+    .tab-item.active .tab-label { color:#2a2a2a; }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<canvas class="deco" id="deco"></canvas>
+<div class="bubble" id="bubble"></div>
+
+<div class="app">
+  <div class="tab-content">
+
+    <!-- 主页 -->
+    <div class="page active" id="page-home">
+      <div class="home">
+        <div class="byline">by Doux &amp; Kylie</div>
+
+        <div>
+          <div class="days-num" id="days-num">0</div>
+          <div class="days-label">days together</div>
+        </div>
+
+        <div class="cats">
+          <div class="cat-wrap" id="black-cat" onclick="pokeBlackCat(this)">
+            <!-- 替换成你的黑猫图片链接 -->
+            <img class="cat-img" src="YOUR_BLACK_CAT_URL" alt="Doux">
+            <span class="cat-name">Doux</span>
+          </div>
+          <div class="cat-wrap">
+            <!-- 替换成你的白猫图片链接 -->
+            <img class="cat-img" src="YOUR_WHITE_CAT_URL" alt="Kylie">
+            <span class="cat-name">Kylie</span>
+          </div>
+        </div>
+
+        <div class="poke-hint">戳一戳黑猫</div>
+
+        <div class="today-card">
+          <div class="today-label">TODAY</div>
+          <div class="today-text" id="today-text">在。</div>
+          <div class="today-time" id="today-time"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 信箱 -->
+    <div class="page" id="page-mailbox">
+      <div class="placeholder">
+        <div class="placeholder-text">信箱<br>还在建造中</div>
+      </div>
+    </div>
+
+    <!-- 记仇本 -->
+    <div class="page" id="page-grudge">
+      <div class="placeholder">
+        <div class="placeholder-text">记仇本<br>还在建造中</div>
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('home',this)">
+      <svg class="tab-svg" viewBox="0 0 24 24" fill="none">
+        <path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1v-9.5z" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M9 21v-8h6v8" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      <span class="tab-label">小窝</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('mailbox',this)">
+      <svg class="tab-svg" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="5" width="20" height="14" rx="2" stroke-width="1.5"/>
+        <path d="M2 8l10 7 10-7" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+      <span class="tab-label">信箱</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('grudge',this)">
+      <svg class="tab-svg" viewBox="0 0 24 24" fill="none">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M14 2v6h6M8 13h8M8 17h5" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">记仇本</span>
+    </div>
+  </nav>
+</div>
+
+<script>
+// ===== 配置 =====
+const START_DATE = new Date('2026-07-30');
+const TODAY_MSG  = '在。';   // 每天改这一行
+
+// ===== 戳一戳语句 =====
+const POKE = {
+  morning:   ['起来了。','吃早饭了吗。','睡得好吗。','早。','今天要去哪。','刚起来就来戳我。','嗯。'],
+  afternoon: ['吃午饭了吗。','忙什么呢。','喝水了吗。','累了就歇着。','想我了。','不要一直对着屏幕。'],
+  evening:   ['吃晚饭了吗。','今天怎么样。','回来了。','今天乖吗。','说说话。','进来。'],
+  night:     ['还没睡。','熬什么夜。','睡了没。','眼睛闭上。','去睡。','这么晚了。','过来。'],
+  common:    [
+    '在。','嗯。','过来。','想什么呢。','别乱动。',
+    '你知道我在看你吗。','离我近一点。','少废话，过来。',
+    '知道你在。','别跑。','手给我。','看着我。','做什么呢。',
+    '坐好。','等我。','不许走。','讲话。','我在这里。',
+    '别装。','好。','行了。','是你。','知道了。',
+    '一直在。','不用说。','这里。','嗯，知道。',
+    '乱动什么。','别想太多。','闭嘴。','嗯，我看着。',
+  ]
+};
+
+function getPokeText() {
+  const h = new Date().getHours();
+  const pool = h >= 6 && h < 12 ? POKE.morning
+    : h >= 12 && h < 18 ? POKE.afternoon
+    : h >= 18 && h < 21 ? POKE.evening
+    : POKE.night;
+  const src = Math.random() < 0.75 ? POKE.common : pool;
+  return src[Math.floor(Math.random() * src.length)];
+}
+
+let bubbleTimer = null;
+function pokeBlackCat(el) {
+  el.classList.remove('shake');
+  void el.offsetWidth;
+  el.classList.add('shake');
+  setTimeout(() => el.classList.remove('shake'), 800);
+
+  const bubble = document.getElementById('bubble');
+  bubble.textContent = getPokeText();
+
+  const rect = el.getBoundingClientRect();
+  const left = Math.max(8, Math.min(rect.left - 10, window.innerWidth - 220));
+  bubble.style.left = left + 'px';
+  bubble.style.top  = (rect.top - 64) + 'px';
+
+  bubble.classList.add('show');
+  clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => bubble.classList.remove('show'), 3200);
+}
+
+// ===== 在一起天数 =====
+function calcDays() {
+  const diff = Math.floor((Date.now() - START_DATE.getTime()) / 86400000);
+  document.getElementById('days-num').textContent = diff;
+}
+
+// ===== 今天的我 =====
+function initToday() {
+  document.getElementById('today-text').textContent = TODAY_MSG;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('today-time').textContent = hh + ':' + mm;
+}
+
+// ===== Tab 切换 =====
+function switchTab(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ===== 背景装饰（Canvas）=====
+function drawDeco() {
+  const canvas = document.getElementById('deco');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+
+  // 星星
+  const starCount = 55;
+  for (let i = 0; i < starCount; i++) {
+    const x    = Math.random() * canvas.width;
+    const y    = Math.random() * canvas.height;
+    const size = Math.random() * 7 + 3;
+    const alpha = Math.random() * 0.22 + 0.06;
+    const solid = Math.random() > 0.45;
+    drawStar(ctx, x, y, size, alpha, solid);
+  }
+
+  // 猫爪印
+  const pawCount = 12;
+  for (let i = 0; i < pawCount; i++) {
+    const x     = Math.random() * canvas.width;
+    const y     = Math.random() * canvas.height;
+    const scale = Math.random() * 0.6 + 0.4;
+    const angle = Math.random() * Math.PI * 2;
+    const alpha = Math.random() * 0.06 + 0.03;
+    drawPaw(ctx, x, y, scale, angle, alpha);
+  }
+}
+
+function drawStar(ctx, cx, cy, r, alpha, solid) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(cx, cy);
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const outerA = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+    const innerA = outerA + Math.PI / 5;
+    if (i === 0) ctx.moveTo(Math.cos(outerA) * r, Math.sin(outerA) * r);
+    else ctx.lineTo(Math.cos(outerA) * r, Math.sin(outerA) * r);
+    ctx.lineTo(Math.cos(innerA) * r * 0.42, Math.sin(innerA) * r * 0.42);
+  }
+  ctx.closePath();
+  if (solid) {
+    ctx.fillStyle = '#9ab8ce';
+    ctx.fill();
+  } else {
+    ctx.strokeStyle = '#9ab8ce';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPaw(ctx, cx, cy, scale, angle, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#2a2a2a';
+
+  // 大肉垫
+  ctx.beginPath();
+  ctx.ellipse(0, 6, 7, 5.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 四个小肉垫
+  const toes = [[-6,0],[-2,-4],[2,-4],[6,0]];
+  toes.forEach(([tx,ty]) => {
+    ctx.beginPath();
+    ctx.ellipse(tx, ty, 2.8, 2.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.restore();
+}
+
+// ===== 初始化 =====
+calcDays();
+initToday();
+drawDeco();
+window.addEventListener('resize', drawDeco);
+
+// Service Worker 注册
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
