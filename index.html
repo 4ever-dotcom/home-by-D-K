@@ -405,7 +405,12 @@ const CAJOLE=[
   ['……去吧。','下次不许了。','行了，这次算了。','知道了，起来。','嗯。下次别这样。','少撒这种娇。','算了。','起来。','这次先算了。','……行了。']
 ];
 
-function showWarn(text,catSrc){document.getElementById('warn-text').textContent=text;if(catSrc)document.getElementById('warn-cat').src=catSrc;document.getElementById('warn-overlay').classList.add('show');}
+function showWarn(text,catSrc){
+  alert('showWarn被调用了:'+text.slice(0,5));
+  document.getElementById('warn-text').textContent=text;
+  if(catSrc)document.getElementById('warn-cat').src=catSrc;
+  document.getElementById('warn-overlay').classList.add('show');
+}
 function closeWarn(){document.getElementById('warn-overlay').classList.remove('show');}
 
 const WARNS_KYLIE=[
