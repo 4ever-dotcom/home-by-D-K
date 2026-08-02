@@ -350,9 +350,7 @@ function calcDays(){document.getElementById('days-num').textContent=Math.floor((
 function initToday(){
   const dayIndex=Math.floor((Date.now()-START_DATE.getTime())/86400000);
   document.getElementById('today-text').textContent=TODAY_MSGS[dayIndex%TODAY_MSGS.length];
-  const now=new Date();
-  document.getElementById('today-time').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-}
+  
   
 function switchTab(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
