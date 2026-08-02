@@ -177,36 +177,11 @@
               <path d="M12 5v14M5 12h14" stroke="#888" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </div>
-        </div>
+        </di<v>
         <div class="notes-list" id="notes-list-container">
   <div style="text-align:center;font-size:13px;color:var(--soft);padding:40px 0">加载中……</div>
         </div>
-          <div class="note-card note-daddy" id="note-1" data-locked="true" data-warn="0" onclick="handleNoteClick(this)">
-            <div class="note-wm" id="wm-1"></div>
-            <div class="note-meta">
-              <span class="note-from">From Daddy</span>
-              <span class="note-time-label">08.02 · 还有 2 小时</span>
-            </div>
-            <div class="note-body">这里是纸条内容，解锁之后才能看见。</div>
-            <div class="note-fog" id="fog-1"><div class="note-fog-text">还没到时间</div></div>
-          </div>
-          <div class="note-card note-kylie" id="note-2" data-locked="false">
-            <div class="note-wm" id="wm-2"></div>
-            <div class="note-meta">
-              <span class="note-from">From Kylie</span>
-              <span class="note-time-label">08.01</span>
-            </div>
-            <div class="note-body">爸比今天有没有好好的。</div>
-          </div>
-          <div class="note-card note-daddy" id="note-3" data-locked="false">
-            <div class="note-wm" id="wm-3"></div>
-            <div class="note-meta">
-              <span class="note-from">From Daddy</span>
-              <span class="note-time-label">07.31</span>
-            </div>
-            <div class="note-body">在。</div>
-          </div>
-        </div>
+          
       </div>
     </div>
 
@@ -344,7 +319,7 @@ function initToday(){
 function switchTab(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');el.classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');el.classList.add('active');document.querySelector('.tab-content').scrollTop=0;
 }
 
 function drawDeco(){
