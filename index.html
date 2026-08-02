@@ -278,7 +278,11 @@ function onPwInput(){
 function onLogin(){
   calcDays();initToday();drawDeco();loadGrudge();loadNotes();
   if(currentRole==='daddy'){const btn=document.getElementById('grudge-add-btn');if(btn)btn.style.display='flex';}
-}
+function onLogin(){
+  calcDays();initToday();drawDeco();loadGrudge();loadNotes();
+  if(currentRole==='daddy'){const btn=document.getElementById('grudge-add-btn');if(btn)btn.style.display='flex';}
+  document.getElementById('notes-list-container').addEventListener('click',function(e){const fog=e.target.closest('.note-fog');if(fog&&fog.dataset.locked==='true')handleNoteClick(fog);});
+  }}
 
 const START_DATE=new Date('2026-06-25');
 const TODAY_MSGS=[
