@@ -9,12 +9,12 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "YOUR_ICON_URL",
+      "src": "https://bee-reg-ab.imagency.cn/p/df85dd03a2c262a6fbb5c3b6c80e5efc.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "YOUR_ICON_URL",
+      "src": "https://bee-reg-ab.imagency.cn/p/df85dd03a2c262a6fbb5c3b6c80e5efc.png",
       "sizes": "512x512",
       "type": "image/png"
     }
