@@ -1,4 +1,4 @@
-const CACHE = 'xiaowo-v1';
+const CACHE = 'xiaowo-v2';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
